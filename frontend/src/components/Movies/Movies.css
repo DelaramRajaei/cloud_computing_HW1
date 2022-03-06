@@ -1,0 +1,76 @@
+@import url('https://fonts.googleapis.com/css2?family=Sansita+Swashed:wght@800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Exo:wght@100;500&display=swap');
+
+.input  {
+    padding: 20px;
+    width: 300px;
+}
+
+.cardlist__movies {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    -webkit-box-shadow: 5px 5px 32px 5px rgba(0,0,0,0.43); 
+    box-shadow: 5px 5px 32px 5px rgba(0,0,0,0.43);
+}
+
+.card {
+    margin-left: 20px;
+    border-radius: 4px;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+.movie__image {
+    height: 500px;
+    width: 350px;
+    border-radius: 10px;
+}
+
+.flex__card {
+    background-color: rgb(14, 13, 13);
+    color: #f3b414 ;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.heading {
+    font-size: 17px;
+    font-weight: thin;
+    padding: 5px;
+    font-family: 'Exo', sans-serif;
+    text-transform: capitalize;
+}
+
+.paragraph {
+    font-family: 'Exo', sans-serif;
+    padding: 5px;
+    color: #9da9c5 ;
+}
+
+.title {
+    font-family: 'Righteous', cursive;
+    color: #efc457;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    padding: 20px;
+}
+
+.name {
+    font-size: 20px;
+    padding: 10px;
+}
+
+.buttons{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    margin-top: 5%;
+}
