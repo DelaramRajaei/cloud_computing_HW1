@@ -27,26 +27,41 @@ export const addComment = async (
         }
         return permission;
       })
-      .catch((err) => console.error(err))
+      .catch((err) => console.error(err));
   });
 };
 
 export const getMovieComments = async (movieId: number, lang: string) => {
   return getComments(movieId).then(async (comments) => {
     let translatedCommentsPromises;
-    if (lang === "en") {
-      translatedCommentsPromises = comments;
-    } else {
-      translatedCommentsPromises = comments.map((comment: any) => {
-        return translation(lang, comment.text).then((translatedComment) => ({
-          ...comment,
-          text: translatedComment,
-        }));
-      });
-    }
+
+    translatedCommentsPromises = comments.map((comment: any) => {
+      return translation(lang, comment.text).then((translatedComment) => ({
+        ...comment,
+        text: translatedComment,
+      }));
+    });
+
     return Promise.all(translatedCommentsPromises).then((comments) => comments);
   });
 };
+
+// export const getMovieComments = async (movieId: number, lang: string) => {
+//   return getComments(movieId).then(async (comments) => {
+//     let translatedCommentsPromises;
+//     if (lang === "en") {
+//       translatedCommentsPromises = comments;
+//     } else {
+//       translatedCommentsPromises = comments.map((comment: any) => {
+//         return translation(lang, comment.text).then((translatedComment) => ({
+//           ...comment,
+//           text: translatedComment,
+//         }));
+//       });
+//     }
+//     return Promise.all(translatedCommentsPromises).then((comments) => comments);
+//   });
+// };
 
 export const speechToText = async (fileName: string, type: string) => {
   const filePath = path.resolve(__dirname, "../uploads", fileName);
@@ -106,7 +121,8 @@ export const naturalLanguageUnderstanding = async (comment: string) => {
 };
 
 export const translation = async (lan: string, comment: string) => {
-  let languageModel = "en-" + lan;
+  // let languageModel = "en-" + lan;
+  let languageModel = lan;
   console.log(languageModel);
 
   console.log(languageModel);
@@ -120,7 +136,7 @@ export const translation = async (lan: string, comment: string) => {
 
   const translateParams = {
     text: [comment, ""],
-    modelId: languageModel,
+    target: languageModel,
   };
   return languageTranslator
     .translate(translateParams)
@@ -128,8 +144,9 @@ export const translation = async (lan: string, comment: string) => {
       return translationResult.result.translations[0].translation;
     })
     .catch((err) => {
-      console.log("error:", err);
+      // console.log("error:", err);
       Promise.resolve("");
+      return comment;
     });
 };
 
