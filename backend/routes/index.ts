@@ -5,11 +5,11 @@ import * as commentsController from "../controllers/comments";
 import { InternalServer } from "../errors/internal-server";
 import { validateRequests } from "../errors/validate-requests";
 import { ResponsesCode } from "../constants/responses";
-import multer from 'multer';
+import multer from "multer";
 import { BadRequest } from "../errors/bad-request";
 
 const router = express.Router();
-const upload = multer({ dest: 'uploads/' });
+const upload = multer({ dest: "uploads/" });
 
 /* comment validator */
 const commentValidator = async (
@@ -46,16 +46,24 @@ router.get("/comments", commentValidator, function (req, res, next) {
 /* POST submit comment */
 router.post(
   "/comment",
-  upload.single('voiceFile'), 
+  upload.single("voiceFile"),
   submitCommentValidator,
   (req, res: Response, next: NextFunction) => {
     const voiceFile = req.file;
-    if(!voiceFile){
+    if (!voiceFile) {
       return next(new BadRequest());
     }
     return commentsController
-      .addComment(req.body.movieId, voiceFile.filename,voiceFile.mimetype, req.body.userName)
-      .then((_) => res.sendStatus(ResponsesCode.NO_CONTENT))
+      .addComment(
+        req.body.movieId,
+        voiceFile.filename,
+        voiceFile.mimetype,
+        req.body.userName
+      )
+      .then((status) => {
+        console.log(status);
+        res.send({status})
+      })
       .catch((_) => next(new InternalServer()));
   }
 );

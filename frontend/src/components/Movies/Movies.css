@@ -74,3 +74,10 @@
     justify-content: center;
     margin-top: 5%;
 }
+
+li{
+    margin-left: 5%;
+    color: #9da9c5 ;
+    text-transform: capitalize;
+
+}

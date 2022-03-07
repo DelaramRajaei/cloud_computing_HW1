@@ -3,7 +3,7 @@ import NaturalLanguageUnderstandingV1 from "ibm-watson/natural-language-understa
 import LanguageTranslatorV3 from "ibm-watson/language-translator/v3";
 import { IamAuthenticator } from "ibm-watson/auth";
 
-import fs from "fs";
+import fs, { stat } from "fs";
 import path from "path";
 
 import { apikey, serviceUrl } from "../constants/authorization";
@@ -15,27 +15,36 @@ export const addComment = async (
   type: string,
   userName: string
 ) => {
-  speechToText(fileName, type)
-    .then((text) =>
-      naturalLanguageUnderstanding(text)
-        .then((permission) => {
-          if (permission) {
-            addCommentToDatabase(text, userName, movieId);
-          } else {
-            console.log("The comment is violent!");
-          }
-        })
-        .catch((err) => console.error(err))
-    )
-    .catch((err) => console.error(err));
+  return speechToText(fileName, type).then(async (text) => {
+    return await naturalLanguageUnderstanding(text)
+      .then((permission) => {
+        if (permission) {
+          addCommentToDatabase(text, userName, movieId);
+          // status = "Comment added successfuly!";
+        } else {
+          console.log("The comment is violent!");
+          // status = "The comment is violent!";
+        }
+        return permission;
+      })
+      .catch((err) => console.error(err))
+  });
 };
 
 export const getMovieComments = async (movieId: number, lang: string) => {
   return getComments(movieId).then(async (comments) => {
-    const translatedCommentsPromises = comments.map((comment: any) => {
-      return translation(lang, comment.text).then((translatedComment) =>  ({ ...comment, text: translatedComment }));
-    });
-    return Promise.all(translatedCommentsPromises).then(comments=>comments);
+    let translatedCommentsPromises;
+    if (lang === "en") {
+      translatedCommentsPromises = comments;
+    } else {
+      translatedCommentsPromises = comments.map((comment: any) => {
+        return translation(lang, comment.text).then((translatedComment) => ({
+          ...comment,
+          text: translatedComment,
+        }));
+      });
+    }
+    return Promise.all(translatedCommentsPromises).then((comments) => comments);
   });
 };
 
@@ -97,15 +106,10 @@ export const naturalLanguageUnderstanding = async (comment: string) => {
 };
 
 export const translation = async (lan: string, comment: string) => {
-  let languageModel = "";
-  if (lan == "English") {
-    languageModel = "en";
-  } else if (lan == "French") {
-    languageModel = "fr";
-  } else {
-    languageModel = "es";
-  }
+  let languageModel = "en-" + lan;
+  console.log(languageModel);
 
+  console.log(languageModel);
   const languageTranslator = new LanguageTranslatorV3({
     version: "2018-05-01",
     authenticator: new IamAuthenticator({
@@ -116,7 +120,7 @@ export const translation = async (lan: string, comment: string) => {
 
   const translateParams = {
     text: [comment, ""],
-    target: languageModel,
+    modelId: languageModel,
   };
   return languageTranslator
     .translate(translateParams)

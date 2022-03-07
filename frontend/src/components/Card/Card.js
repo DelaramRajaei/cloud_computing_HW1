@@ -1,5 +1,4 @@
-import React, { useRef, useState } from "react";
-import { styled } from "@mui/material/styles";
+import React, { useState } from "react";
 import Stack from "@mui/material/Stack";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
@@ -18,6 +17,7 @@ const Card = ({ movie }) => {
   const [lang, setLang] = useState("en");
   const [selectedFile, setSelectedFile] = useState(null);
   const [comments, setComments] = useState([]);
+  
 
   /* Sending a voice */
   const handleSendVoice = (movieId) => {
@@ -25,20 +25,23 @@ const Card = ({ movie }) => {
     formData.append("movieId", movieId);
     formData.append("userName", "delaram");
     formData.append("voiceFile", selectedFile, selectedFile.name);
-    console.log(formData)
+    console.log(formData);
     fetch("http://localhost:3001/comment", {
       method: "POST",
       body: formData,
+    }).then((response) =>response.json())
+    .then( (data)=>{
+      if(data.status){
+        alert('The comment added succesfuly!')
+      }else{
+        alert('The comment is violent!')
+      }
     });
   };
 
   const onFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
   };
-
-  const Input = styled("input")({
-    display: "none",
-  });
 
   /* Show all comments*/
   const showComments = async (movieId) => {
@@ -62,7 +65,7 @@ const Card = ({ movie }) => {
 
   const commentsList = comments.map((comment, index) => (
     <li key={index}>
-      {comment.userName}:{comment.text}
+      {comment.userName}: {comment.text}
     </li>
   ));
 
@@ -78,8 +81,18 @@ const Card = ({ movie }) => {
             <Stack direction="row" spacing={1}>
               {/* Send a voice */}
               <div>
-                <input accept="audio/*" type="file" onChange={(e) => onFileChange(e)} />
-                <Button variant="contained" color="warning" onClick={() => handleSendVoice(movie.movieID)}>Upload</Button>
+                <input
+                  accept="audio/*"
+                  type="file"
+                  onChange={(e) => onFileChange(e)}
+                />
+                <Button
+                  variant="contained"
+                  color="warning"
+                  onClick={() => handleSendVoice(movie.movieID)}
+                >
+                  Upload
+                </Button>
               </div>
               {/* <label htmlFor="contained-button-file">
                 <Input
@@ -147,7 +160,7 @@ const Card = ({ movie }) => {
               </Dialog>
             </Stack>
           </div>
-          <ul>{commentsList}</ul>
+          <ul className="commentList">{commentsList}</ul>
         </div>
       </div>
     </>
