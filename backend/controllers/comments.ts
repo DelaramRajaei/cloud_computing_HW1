@@ -11,10 +11,11 @@ import { addCommentToDatabase, getComments } from "./commentsCollection";
 
 export const addComment = async (
   movieId: number,
-  comment: string,
+  fileName: string,
+  type: string,
   userName: string
 ) => {
-  speechToText(comment)
+  speechToText(fileName, type)
     .then((text) =>
       naturalLanguageUnderstanding(text)
         .then((permission) => {
@@ -29,19 +30,17 @@ export const addComment = async (
     .catch((err) => console.error(err));
 };
 
-export const getMovieComments = async (movieId: number) => {
-  return getComments(movieId).then((comments) => comments);
+export const getMovieComments = async (movieId: number, lang: string) => {
+  return getComments(movieId).then(async (comments) => {
+    const translatedCommentsPromises = comments.map((comment: any) => {
+      return translation(lang, comment.text).then((translatedComment) =>  ({ ...comment, text: translatedComment }));
+    });
+    return Promise.all(translatedCommentsPromises).then(comments=>comments);
+  });
 };
 
-export const speechToText = async (fileName: string) => {
-  const filePath = path.resolve(__dirname, "../voices", fileName);
-  let ext = path.extname(filePath);
-  let audioType = "";
-  if (ext == ".flac") {
-    audioType = "audio/flac";
-  } else {
-    audioType = "audio/mp3";
-  }
+export const speechToText = async (fileName: string, type: string) => {
+  const filePath = path.resolve(__dirname, "../uploads", fileName);
 
   const speechToText = new SpeechToTextV1({
     authenticator: new IamAuthenticator({
@@ -51,7 +50,7 @@ export const speechToText = async (fileName: string) => {
   });
   const recognizeParams = {
     audio: fs.createReadStream(filePath),
-    contentType: audioType,
+    contentType: type,
   };
   let text = "";
   await speechToText
@@ -98,7 +97,7 @@ export const naturalLanguageUnderstanding = async (comment: string) => {
 };
 
 export const translation = async (lan: string, comment: string) => {
-  var languageModel = "";
+  let languageModel = "";
   if (lan == "English") {
     languageModel = "en";
   } else if (lan == "French") {
@@ -119,18 +118,15 @@ export const translation = async (lan: string, comment: string) => {
     text: [comment, ""],
     target: languageModel,
   };
-  var translatedComment = "";
-  languageTranslator
+  return languageTranslator
     .translate(translateParams)
     .then((translationResult) => {
-      translatedComment = translationResult.result.translations[0].translation;
-      console.log(translatedComment);
+      return translationResult.result.translations[0].translation;
     })
     .catch((err) => {
       console.log("error:", err);
+      Promise.resolve("");
     });
-
-  return translatedComment;
 };
 
 export default {

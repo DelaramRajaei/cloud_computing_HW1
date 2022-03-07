@@ -1,62 +1,11 @@
-import React, { useState, useEffect, Fragment } from "react";
-import Header from "../Header/Header";
-import Card from "../Card/Card";
+import React from "react";
 import "./Movies.css";
+import Card from '../Card/Card'
 
-const Movies = () => {
-  const [movies, setMovies] = useState([]);
-  const [smovies, searchMovies] = useState([]);
-  const [query, setQuery] = useState("");
+const Movies = ({movies}) => {
+  const cards = movies==null ? <span>No movies</span> : movies.map(movie=><Card key={movie.movieID} movie={movie} />);
 
-  const getMovieList = async () => {
-    const apiURI = `http://localhost:3001/movies`;
-
-    try {
-      const response = await fetch(apiURI);
-      const responseJson = await response.json();
-      setMovies(responseJson);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const searchMovie = async (e) => {
-    e.preventDefault();
-
-    const apiURI = `http://localhost:3001/search?name=${query}`;
-    console.log(apiURI);
-
-    try {
-      const response = await fetch(apiURI);
-      const responseJson = await response.json();
-      searchMovies(responseJson);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  useEffect(() => {
-    getMovieList();
-  }, []);
-
-  console.log(movies, "movies");
-
-  return (
-    <Fragment>
-      <div className="shoppies">
-        {/*Header component*/}
-        <Header
-          searchMovie={searchMovie}
-          query={query}
-          setQuery={setQuery}
-          smovies={smovies}
-        />
-      </div>
-      <div className="list-movie">
-        <Card movies={movies} />
-      </div>
-    </Fragment>
-  );
+  return (<>{cards}</>);
 };
 
 export default Movies;

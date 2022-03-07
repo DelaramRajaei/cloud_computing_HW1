@@ -5,8 +5,11 @@ import * as commentsController from "../controllers/comments";
 import { InternalServer } from "../errors/internal-server";
 import { validateRequests } from "../errors/validate-requests";
 import { ResponsesCode } from "../constants/responses";
+import multer from 'multer';
+import { BadRequest } from "../errors/bad-request";
 
 const router = express.Router();
+const upload = multer({ dest: 'uploads/' });
 
 /* comment validator */
 const commentValidator = async (
@@ -15,6 +18,7 @@ const commentValidator = async (
   next: NextFunction
 ) => {
   await query("movie").notEmpty().isNumeric().run(req);
+  await query("lang").notEmpty().isString().run(req);
   validateRequests(req, next);
 };
 
@@ -25,7 +29,6 @@ const submitCommentValidator = async (
   next: NextFunction
 ) => {
   await body("movieId").notEmpty().isNumeric().run(req);
-  await body("commentBody").notEmpty().isString().run(req);
   await body("userName").notEmpty().isString().run(req);
   validateRequests(req, next);
 };
@@ -33,8 +36,9 @@ const submitCommentValidator = async (
 /* GET all comments of a movie */
 router.get("/comments", commentValidator, function (req, res, next) {
   const movieId = req.query["movie"]?.toString();
+  const lang = req.query["lang"]?.toString();
   commentsController
-    .getMovieComments(parseInt(movieId || "0"))
+    .getMovieComments(parseInt(movieId || "0"), lang || "")
     .then((comments) => res.send(comments))
     .catch(() => new InternalServer());
 });
@@ -42,10 +46,15 @@ router.get("/comments", commentValidator, function (req, res, next) {
 /* POST submit comment */
 router.post(
   "/comment",
+  upload.single('voiceFile'), 
   submitCommentValidator,
-  (req: Request, res: Response, next: NextFunction) => {
-    commentsController
-      .addComment(req.body.movieId, req.body.commentBody, req.body.userName)
+  (req, res: Response, next: NextFunction) => {
+    const voiceFile = req.file;
+    if(!voiceFile){
+      return next(new BadRequest());
+    }
+    return commentsController
+      .addComment(req.body.movieId, voiceFile.filename,voiceFile.mimetype, req.body.userName)
       .then((_) => res.sendStatus(ResponsesCode.NO_CONTENT))
       .catch((_) => next(new InternalServer()));
   }

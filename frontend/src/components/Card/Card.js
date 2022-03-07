@@ -13,123 +13,144 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 
-const Input = styled("input")({
-  display: "none",
-});
+const Card = ({ movie }) => {
+  const [open, setOpen] = useState(false);
+  const [lang, setLang] = useState("en");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [comments, setComments] = useState([]);
 
-const Card = ({ movies }) => {
-  const [open, setOpen] = React.useState(false);
-  const [lan, setLan] = React.useState("");
-  const [selectedFile, setSelectedFile] = useState();
-  const [isFilePicked, setIsFilePicked] = useState(false);
+  /* Sending a voice */
+  const handleSendVoice = (movieId) => {
+    const formData = new FormData();
+    formData.append("movieId", movieId);
+    formData.append("userName", "delaram");
+    formData.append("voiceFile", selectedFile, selectedFile.name);
+    console.log(formData)
+    fetch("http://localhost:3001/comment", {
+      method: "POST",
+      body: formData,
+    });
+  };
 
-  const changeHandler = (event) => {
+  const onFileChange = (event) => {
     setSelectedFile(event.target.files[0]);
-    setIsFilePicked(true);
   };
 
-  const handleSubmission = () => {
-      //TODO: Save the file in directory 
-      //TODO: Get All comments of a movie
-      //TODO: Translate all 
-  };
+  const Input = styled("input")({
+    display: "none",
+  });
 
-  const handleChange = (event) => {
-    setLan(String(event.target.value) || "");
-    // TODO: Save the file in the voices directory
-    // TODO: Call the "add comment"  function
+  /* Show all comments*/
+  const showComments = async (movieId) => {
+    handleClickClose();
+    const comments = await fetch(
+      `http://localhost:3001/comments?movie=${movieId}&lang=${lang}`
+    ).then((response) => response.json());
+    setComments(comments);
+    //SHOW BOX
   };
 
   const handleClickOpen = () => {
     setOpen(true);
   };
 
-  const handleClose = (event, reason) => {
+  const handleClickClose = (event, reason) => {
     if (reason !== "backdropClick") {
       setOpen(false);
     }
   };
 
+  const commentsList = comments.map((comment, index) => (
+    <li key={index}>
+      {comment.userName}:{comment.text}
+    </li>
+  ));
+
   return (
-    <div className="cardlist__movies">
-      {movies
-        .filter((movie) => movie.poster)
-        .map((movie, index) => (
-          <div className="card" key={index}>
-            <img className="movie__image" src={movie.poster} alt="postal" />
-            <div className="flex__card">
-              <p className="heading">{movie.name}</p>
-              <p className="paragraph">Year : {movie.year}</p>
-              <p className="paragraph">Director : {movie.director}</p>
-              <div className="buttons">
-                <Stack direction="row" spacing={1}>
-                  <label htmlFor="contained-button-file">
-                    <Input
-                      accept="image/*"
-                      id="contained-button-file"
-                      multiple={false}
-                      type="file"
-                      onChange={changeHandler}
-                    />
-                    <Button
-                      variant="contained"
-                      color="warning"
-                      component="span"
-                      onClick={handleSubmission}
-                    >
-                      Send a voice
-                    </Button>
-                  </label>
-                  <Button
-                    variant="outlined"
-                    color="warning"
-                    onClick={handleClickOpen}
-                  >
-                    Comments
-                  </Button>
-                  <Dialog
-                    disableEscapeKeyDown
-                    open={open}
-                    onClose={handleClose}
-                  >
-                    <DialogTitle>Choose a language</DialogTitle>
-                    <DialogContent>
-                      <Box
-                        component="form"
-                        sx={{ display: "flex", flexWrap: "wrap" }}
-                      >
-                        <FormControl sx={{ m: 1, minWidth: 200 }}>
-                          <InputLabel id="demo-dialog-select-label">
-                            Lan
-                          </InputLabel>
-                          <Select
-                            labelId="demo-dialog-select-label"
-                            id="demo-dialog-select"
-                            value={lan}
-                            onChange={handleChange}
-                            input={<OutlinedInput label="lan" />}
-                          >
-                            <MenuItem value="">
-                              <em>None</em>
-                            </MenuItem>
-                            <MenuItem value={"en"}>English</MenuItem>
-                            <MenuItem value={"fr"}>French</MenuItem>
-                            <MenuItem value={"es"}>German</MenuItem>
-                          </Select>
-                        </FormControl>
-                      </Box>
-                    </DialogContent>
-                    <DialogActions>
-                      <Button onClick={handleClose}>Cancel</Button>
-                      <Button onClick={handleClose}>Ok</Button>
-                    </DialogActions>
-                  </Dialog>
-                </Stack>
+    <>
+      <div className="card">
+        <img className="movie__image" src={movie.poster} alt="postal" />
+        <div className="flex__card">
+          <p className="heading">{movie.name}</p>
+          <p className="paragraph">Year : {movie.year}</p>
+          <p className="paragraph">Director : {movie.director}</p>
+          <div className="buttons">
+            <Stack direction="row" spacing={1}>
+              {/* Send a voice */}
+              <div>
+                <input accept="audio/*" type="file" onChange={(e) => onFileChange(e)} />
+                <Button variant="contained" color="warning" onClick={() => handleSendVoice(movie.movieID)}>Upload</Button>
               </div>
-            </div>
+              {/* <label htmlFor="contained-button-file">
+                <Input
+                  accept="audio/*"
+                  id="contained-button-file"
+                  multiple={false}
+                  type="file"
+                  onChange={(e) => handleSendVoice(e, movie.movieID)}
+                />
+                <Button variant="contained" color="warning" component="span">
+                  Send a voice
+                </Button>
+              </label> */}
+
+              {/* Show all comments */}
+              <Button
+                variant="outlined"
+                color="warning"
+                onClick={handleClickOpen}
+              >
+                Comments
+              </Button>
+              {/* Box for choosing language */}
+              <Dialog
+                disableEscapeKeyDown
+                open={open}
+                onClose={handleClickClose}
+              >
+                <DialogTitle>Choose a language</DialogTitle>
+                <DialogContent>
+                  <Box
+                    component="form"
+                    sx={{ display: "flex", flexWrap: "wrap" }}
+                  >
+                    <FormControl sx={{ m: 1, minWidth: 200 }}>
+                      <InputLabel id="demo-dialog-select-label">
+                        Lang
+                      </InputLabel>
+                      <Select
+                        labelId="demo-dialog-select-label"
+                        id="demo-dialog-select"
+                        onChange={(e) => setLang(e.target.value)}
+                        input={<OutlinedInput label="lan" />}
+                      >
+                        <MenuItem value="">
+                          <em>None</em>
+                        </MenuItem>
+                        <MenuItem value={"en"}>English</MenuItem>
+                        <MenuItem value={"fr"}>French</MenuItem>
+                        <MenuItem value={"es"}>German</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={handleClickClose}>Cancel</Button>
+                  <Button
+                    onClick={(e) => {
+                      showComments(movie.movieID);
+                    }}
+                  >
+                    Ok
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            </Stack>
           </div>
-        ))}
-    </div>
+          <ul>{commentsList}</ul>
+        </div>
+      </div>
+    </>
   );
 };
 

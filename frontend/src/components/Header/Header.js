@@ -1,15 +1,15 @@
-import React, { Fragment } from "react";
+import React, { Fragment,useState } from "react";
 import "./Header.css";
-import Card from "../Card/Card";
 
-const header = ({ searchMovie, query, setQuery, smovies }) => {
+const Header = ({ onSearchMovie }) => {
+  const [query, setQuery] = useState('')
   return (
     <Fragment>
       <div className="header">
         <h1 className="title">Cloud Computing Homework</h1>
-        {/* Search form*/}
+        {/* Search form */}
         <div className="search">
-          <form className="search-form" onSubmit={searchMovie}>
+          <form className="search-form" onSubmit={(e)=>{e.preventDefault(); onSearchMovie(query)}}>
             <label htmlFor="query" className="name"></label>
             <input
               type="text"
@@ -22,11 +22,8 @@ const header = ({ searchMovie, query, setQuery, smovies }) => {
           </form>
         </div>
       </div>
-      <div className="list-movie">
-        <Card movies={smovies} />
-      </div>
     </Fragment>
   );
 };
 
-export default header;
+export default Header;
